@@ -1,6 +1,8 @@
 Ext.ns("Ext.plugin.touch");
 
 Ext.plugin.touch.GridEditor = Ext.extend(Ext.util.Observable, {
+	listenEvent : "taphold",
+
 	init: function(cmp) {
 		var me = this;
 
@@ -18,18 +20,30 @@ Ext.plugin.touch.GridEditor = Ext.extend(Ext.util.Observable, {
 
 	initListeners: function() {
 		var me  = this,
-			cmp = me.cmp;
+			cmp = me.cmp,
+			listener = {
+				scope : me
+			};
+
+		listener[me.listenEvent] = {
+			delegate : "td.x-grid-cell",
+			fn       : me.handleEditEvent
+		}
+
+		cmp.mon(cmp.body, listener);
+
+		return;
 
 		cmp.mon(cmp.body, {
 			scope   : me,
 			taphold : {
 				delegate : "td.x-grid-cell",
-				fn       : me.handleTap
+				fn       : me.handleEditEvent
 			}
 		});
 	},
 
-	handleTap: function(e, node) {
+	handleEditEvent: function(e, node) {
 		var me       = this,
 			cmp      = me.cmp,
 			el       = Ext.get(node),
@@ -59,7 +73,7 @@ Ext.plugin.touch.GridEditor = Ext.extend(Ext.util.Observable, {
 	showPopup: function(value) {
 		var me = this;
 
-		var msg = Ext.Msg.show({
+		Ext.Msg.show({
 			title     : "Edit",
 			prompt    : true,
 			msg       : "Please enter a new value:",
@@ -69,8 +83,6 @@ Ext.plugin.touch.GridEditor = Ext.extend(Ext.util.Observable, {
 			fn        : me.handleEdit,
 			value     : value
 		});
-
-		msg.on("hide", me.destroyMsgBox);
 	},
 
 	handleEdit: function(btn, text) {
@@ -93,10 +105,6 @@ Ext.plugin.touch.GridEditor = Ext.extend(Ext.util.Observable, {
 		});
 
 		cmp.fireEvent("edit", aboutEdit);
-	},
-
-	destroyMsgBox: function(msg) {
-		msg.destroy();
 	}
 });
 
